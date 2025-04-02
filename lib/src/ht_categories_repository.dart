@@ -2,10 +2,6 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'dart:async';
-
-// Assuming the client, model, and exceptions are exported from a package
-// or accessible path. Adjust the import path if necessary based on your
-// actual project structure (e.g., 'package:ht_categories_client/ht_categories_client.dart').
 import 'package:ht_categories_client/ht_categories_client.dart';
 
 /// {@template ht_categories_repository}
