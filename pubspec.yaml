@@ -1,5 +1,5 @@
 name: ht_categories_repository
-description: A Very Good Project created by Very Good CLI.
+description: A Dart package providing a repository implementation for managing news categories.
 repository: https://github.com/headlines-toolkit/ht-categories-repository
 publish_to: none
 
