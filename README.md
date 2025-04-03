@@ -10,7 +10,8 @@ This package follows the Repository pattern, offering a clean interface for inte
 
 Key features:
 
--   Provides methods for CRUD operations on categories (`getCategories`, `getCategory`, `createCategory`, `updateCategory`, `deleteCategory`).
+-   Provides methods for category operations (`getCategories`, `getCategory`, `createCategory`, `updateCategory`, `deleteCategory`).
+-   Methods returning category data (`getCategories`, `getCategory`, `createCategory`, `updateCategory`) now return a `Future<PaginatedResponse<Category>>`, wrapping the data from the client.
 -   Injectable `HtCategoriesClient` dependency for flexibility.
 -   Translates client-level exceptions into specific `CategoryException` subtypes for consistent error handling in the application layer.
 
@@ -32,18 +33,34 @@ void main() async {
 
   try {
     // 3. Use the repository methods
-    print('Fetching all categories...');
-    final categories = await categoriesRepository.getCategories();
-    print('Found ${categories.length} categories.');
+    print('Fetching categories...');
+    // getCategories now returns PaginatedResponse
+    final categoriesResponse = await categoriesRepository.getCategories();
+    final categories = categoriesResponse.items; // Access items from the response
+    print('Found ${categories.length} categories in the first page.');
 
     if (categories.isNotEmpty) {
       final firstCategoryId = categories.first.id;
       print('Fetching category with ID: $firstCategoryId...');
-      final category = await categoriesRepository.getCategory(firstCategoryId);
-      print('Fetched category: ${category.name}');
+      // getCategory now returns PaginatedResponse
+      final categoryResponse = await categoriesRepository.getCategory(firstCategoryId);
+      if (categoryResponse.items.isNotEmpty) {
+        final category = categoryResponse.items.first; // Access the single item
+        print('Fetched category: ${category.name}');
+      } else {
+         print('Category with ID $firstCategoryId not found in response.');
+      }
     }
 
-    // ... other repository operations (create, update, delete)
+    // Example: Creating a category (returns PaginatedResponse)
+    print('Creating a new category...');
+    final newCategoryResponse = await categoriesRepository.createCategory(name: 'Business');
+    if (newCategoryResponse.items.isNotEmpty) {
+      final newCategory = newCategoryResponse.items.first;
+      print('Created category: ${newCategory.name} with ID: ${newCategory.id}');
+    }
+
+    // ... other repository operations (update, delete)
 
   } on CategoryException catch (e) {
     print('An error occurred: $e');
@@ -88,9 +105,12 @@ class YourHtCategoriesClientImplementation extends HtCategoriesClient {
     _categories.remove(id);
   }
 
+  // Note: The client implementation still returns List<Category> or Category directly.
+  // The repository is responsible for wrapping these into PaginatedResponse.
   @override
-  Future<List<Category>> getCategories() async {
+  Future<List<Category>> getCategories({int? limit, String? startAfterId}) async {
     await Future<void>.delayed(const Duration(milliseconds: 100)); // Simulate network delay
+    // This example client doesn't implement pagination logic, returns all.
     return _categories.values.toList();
   }
 
