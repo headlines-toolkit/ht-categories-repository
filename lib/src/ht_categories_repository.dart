@@ -2,7 +2,9 @@
 // ignore_for_file: lines_longer_than_80_chars
 
 import 'dart:async';
+
 import 'package:ht_categories_client/ht_categories_client.dart';
+import 'package:ht_shared/ht_shared.dart';
 
 /// {@template ht_categories_repository}
 /// A repository that manages category data operations by interacting
@@ -23,16 +25,31 @@ class HtCategoriesRepository {
 
   final HtCategoriesClient _categoriesClient;
 
-  /// Fetches all available news categories.
+  /// Fetches a paginated list of available news categories.
   ///
   /// Delegates the call to the underlying [_categoriesClient].
+  /// Optionally accepts a [limit] to control the number of categories returned
+  /// per page and a [startAfterId] to fetch the next page starting after the
+  /// category with the specified ID.
   ///
-  /// Returns a list of [Category] objects.
+  /// Returns a [PaginatedResponse] containing a list of [Category] objects
+  /// for the requested page, along with pagination details.
   ///
   /// Throws a [GetCategoriesFailure] if an unexpected error occurs during fetching.
-  Future<List<Category>> getCategories() async {
+  Future<PaginatedResponse<Category>> getCategories({
+    int? limit,
+    String? startAfterId,
+  }) async {
     try {
-      return await _categoriesClient.getCategories();
+      final categoryList = await _categoriesClient.getCategories(
+        limit: limit,
+        startAfterId: startAfterId,
+      );
+      return PaginatedResponse(
+        items: categoryList,
+        cursor: null,
+        hasMore: false,
+      );
     } on Exception catch (e, st) {
       // Catch any generic Exception from the client that isn't already
       // a specific CategoryException subtype handled by the client itself.
@@ -52,9 +69,10 @@ class HtCategoriesRepository {
   /// Throws a [GetCategoryFailure] if an unexpected error occurs (other than not found).
   /// Throws a [CategoryNotFoundFailure] if no category with the given [id] exists,
   /// assuming the client throws this specific exception type.
-  Future<Category> getCategory(String id) async {
+  Future<PaginatedResponse<Category>> getCategory(String id) async {
     try {
-      return await _categoriesClient.getCategory(id);
+      final category = await _categoriesClient.getCategory(id);
+      return PaginatedResponse(items: [category], cursor: null, hasMore: false);
     } on CategoryNotFoundFailure {
       // Re-throw specific known failures directly if the client throws them.
       rethrow;
@@ -69,20 +87,21 @@ class HtCategoriesRepository {
   /// Delegates the call to the underlying [_categoriesClient].
   ///
   /// Takes the required [name] and optional [description] and [iconUrl].
-  /// Returns the newly created [Category] object, including its assigned ID.
+  /// Returns the newly created [Category] object, wrapped in a [PaginatedResponse].
   ///
   /// Throws a [CreateCategoryFailure] if an unexpected error occurs during creation.
-  Future<Category> createCategory({
+  Future<PaginatedResponse<Category>> createCategory({
     required String name,
     String? description,
     String? iconUrl,
   }) async {
     try {
-      return await _categoriesClient.createCategory(
+      final category = await _categoriesClient.createCategory(
         name: name,
         description: description,
         iconUrl: iconUrl,
       );
+      return PaginatedResponse(items: [category], cursor: null, hasMore: false);
     } on Exception catch (e, st) {
       // Catch any generic Exception from the client.
       throw CreateCategoryFailure(e, st);
@@ -95,15 +114,20 @@ class HtCategoriesRepository {
   ///
   /// The [category] object must contain the [Category.id] to update,
   /// along with the new values for the fields to be modified.
-  /// Returns the updated [Category] object.
+  /// Returns the updated [Category] object, wrapped in a [PaginatedResponse].
   ///
   /// Throws an [UpdateCategoryFailure] if an unexpected error occurs during the update
   /// (other than not found).
   /// Throws a [CategoryNotFoundFailure] if no category with the given `category.id` exists,
   /// assuming the client throws this specific exception type.
-  Future<Category> updateCategory(Category category) async {
+  Future<PaginatedResponse<Category>> updateCategory(Category category) async {
     try {
-      return await _categoriesClient.updateCategory(category);
+      final updatedCategory = await _categoriesClient.updateCategory(category);
+      return PaginatedResponse(
+        items: [updatedCategory],
+        cursor: null,
+        hasMore: false,
+      );
     } on CategoryNotFoundFailure {
       // Re-throw specific known failures directly if the client throws them.
       rethrow;
