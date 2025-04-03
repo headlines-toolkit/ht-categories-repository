@@ -13,7 +13,10 @@ dependencies:
   ht_categories_client:
     git:
       url: https://github.com/headlines-toolkit/ht-categories-client.git
-      
+  ht_shared:
+    git:
+      url: https://github.com/headlines-toolkit/ht-shared.git
+            
 dev_dependencies:
   flutter_test:
     sdk: flutter
