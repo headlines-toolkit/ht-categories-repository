@@ -217,7 +217,9 @@ void main() {
 
         // Assert: Verify the client method was called with the correct ID and result matches
         expect(
-            actualResponse, equals(dummyCategory),); // Expect Category directly
+          actualResponse,
+          equals(dummyCategory),
+        ); // Expect Category directly
         verify(() => mockCategoriesClient.getCategory(categoryId)).called(1);
       });
 
@@ -281,8 +283,10 @@ void main() {
         );
 
         // Assert: Verify the client method was called with correct parameters and result matches
-        expect(actualResponse,
-            equals(createdCategory),); // Expect Category directly
+        expect(
+          actualResponse,
+          equals(createdCategory),
+        ); // Expect Category directly
         verify(
           () => mockCategoriesClient.createCategory(
             name: name,
@@ -342,8 +346,10 @@ void main() {
             await categoriesRepository.updateCategory(categoryToUpdate);
 
         // Assert: Verify the client method was called with the correct category and result matches
-        expect(actualResponse,
-            equals(updatedCategory),); // Expect Category directly
+        expect(
+          actualResponse,
+          equals(updatedCategory),
+        ); // Expect Category directly
         verify(() => mockCategoriesClient.updateCategory(categoryToUpdate))
             .called(1);
       });
