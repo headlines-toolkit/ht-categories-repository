@@ -51,14 +51,34 @@ void main() {
         limit,
         (i) => Category(id: 'cat-$i', name: 'Category $i'),
       );
-      final expectedResponse = PaginatedResponse<Category>(
+      // Expected response when limit is met
+      final expectedResponseFull = PaginatedResponse<Category>(
         items: sampleCategories,
-        cursor: null,
-        hasMore: false,
+        cursor: sampleCategories.last.id, // Cursor is the last item's ID
+        hasMore: true, // hasMore is true because items returned == limit
+      );
+      // Expected response when fewer items than limit are returned
+      final sampleCategoriesPartial = sampleCategories.sublist(0, 5);
+      final expectedResponsePartial = PaginatedResponse<Category>(
+        items: sampleCategoriesPartial,
+        cursor: sampleCategoriesPartial.last.id, // Cursor is the last item's ID
+        hasMore: false, // hasMore is false because items returned < limit
+      );
+      // Expected response when no limit is provided
+      final expectedResponseNoLimit = PaginatedResponse<Category>(
+        items: sampleCategories,
+        cursor: sampleCategories.last.id, // Cursor is the last item's ID
+        hasMore: false, // hasMore is false because no limit was specified
+      );
+      // Expected response when client returns empty list
+      final expectedResponseEmpty = PaginatedResponse<Category>(
+        items: const [],
+        cursor: null, // Cursor is null when list is empty
+        hasMore: false, // hasMore is false
       );
 
       test(
-          'delegates call to client.getCategories with params and returns PaginatedResponse',
+          'delegates call to client.getCategories with limit and returns PaginatedResponse with hasMore=true and correct cursor when limit is met',
           () async {
         // Arrange: Stub the client method to return a list
         when(
@@ -75,13 +95,79 @@ void main() {
         );
 
         // Assert: Verify the client method was called with correct params and result matches
-        expect(actualResponse, equals(expectedResponse));
+        expect(actualResponse, equals(expectedResponseFull));
         verify(
           () => mockCategoriesClient.getCategories(
             limit: limit,
             startAfterId: startAfterId,
           ),
         ).called(1);
+      });
+
+      test(
+          'delegates call to client.getCategories with limit and returns PaginatedResponse with hasMore=false and correct cursor when fewer items than limit are returned',
+          () async {
+        // Arrange: Stub the client method to return a partial list
+        when(
+          () => mockCategoriesClient.getCategories(
+            limit: any(named: 'limit'),
+            startAfterId: any(named: 'startAfterId'),
+          ),
+        ).thenAnswer((_) async => sampleCategoriesPartial);
+
+        // Act: Call the repository method
+        final actualResponse = await categoriesRepository.getCategories(
+          limit: limit, // Requesting 10
+          startAfterId: startAfterId,
+        );
+
+        // Assert: Verify the client method was called and result matches partial response
+        expect(actualResponse, equals(expectedResponsePartial));
+        verify(
+          () => mockCategoriesClient.getCategories(
+            limit: limit,
+            startAfterId: startAfterId,
+          ),
+        ).called(1);
+      });
+
+      test(
+          'delegates call to client.getCategories without limit and returns PaginatedResponse with hasMore=false and correct cursor',
+          () async {
+        // Arrange: Stub the client method to return a list
+        when(
+          () => mockCategoriesClient.getCategories(
+            startAfterId: any(named: 'startAfterId'),
+          ),
+        ).thenAnswer((_) async => sampleCategories);
+
+        // Act: Call the repository method without limit
+        final actualResponse = await categoriesRepository.getCategories(
+          startAfterId: startAfterId,
+        );
+
+        // Assert: Verify the client method was called and result matches no-limit response
+        expect(actualResponse, equals(expectedResponseNoLimit));
+        verify(
+          () => mockCategoriesClient.getCategories(
+            startAfterId: startAfterId,
+          ),
+        ).called(1);
+      });
+
+      test(
+          'returns PaginatedResponse with empty list, null cursor, and hasMore=false when client returns empty list',
+          () async {
+        // Arrange: Stub the client method to return an empty list
+        when(() => mockCategoriesClient.getCategories())
+            .thenAnswer((_) async => []);
+
+        // Act: Call the repository method
+        final actualResponse = await categoriesRepository.getCategories();
+
+        // Assert: Verify the result matches the empty response
+        expect(actualResponse, equals(expectedResponseEmpty));
+        verify(() => mockCategoriesClient.getCategories()).called(1);
       });
 
       test('throws GetCategoriesFailure when client throws Exception',
@@ -116,14 +202,10 @@ void main() {
       const categoryId = 'test-id';
       // Use the actual Category type from the client package
       final dummyCategory = Category(id: categoryId, name: 'Test Category');
-      final expectedResponse = PaginatedResponse<Category>(
-        items: [dummyCategory],
-        cursor: null,
-        hasMore: false,
-      );
+      // No longer need expectedResponse for PaginatedResponse
 
       test(
-          'delegates call to client.getCategory with correct id and returns PaginatedResponse',
+          'delegates call to client.getCategory with correct id and returns Category', // Updated description
           () async {
         // Arrange: Stub the client method to return a Category
         when(() => mockCategoriesClient.getCategory(any()))
@@ -134,7 +216,8 @@ void main() {
             await categoriesRepository.getCategory(categoryId);
 
         // Assert: Verify the client method was called with the correct ID and result matches
-        expect(actualResponse, equals(expectedResponse));
+        expect(
+            actualResponse, equals(dummyCategory),); // Expect Category directly
         verify(() => mockCategoriesClient.getCategory(categoryId)).called(1);
       });
 
@@ -176,14 +259,10 @@ void main() {
       const iconUrl = 'url';
       // Use the actual Category type
       final createdCategory = Category(id: 'new-id', name: name);
-      final expectedResponse = PaginatedResponse<Category>(
-        items: [createdCategory],
-        cursor: null,
-        hasMore: false,
-      );
+      // No longer need expectedResponse for PaginatedResponse
 
       test(
-          'delegates call to client.createCategory with correct parameters and returns PaginatedResponse',
+          'delegates call to client.createCategory with correct parameters and returns Category', // Updated description
           () async {
         // Arrange: Stub the client method using any(named:) for named params
         when(
@@ -202,7 +281,8 @@ void main() {
         );
 
         // Assert: Verify the client method was called with correct parameters and result matches
-        expect(actualResponse, equals(expectedResponse));
+        expect(actualResponse,
+            equals(createdCategory),); // Expect Category directly
         verify(
           () => mockCategoriesClient.createCategory(
             name: name,
@@ -248,14 +328,10 @@ void main() {
       // Use the actual Category type
       final categoryToUpdate = Category(id: 'update-id', name: 'Update Me');
       final updatedCategory = Category(id: 'update-id', name: 'Updated Name');
-      final expectedResponse = PaginatedResponse<Category>(
-        items: [updatedCategory],
-        cursor: null,
-        hasMore: false,
-      );
+      // No longer need expectedResponse for PaginatedResponse
 
       test(
-          'delegates call to client.updateCategory with correct category and returns PaginatedResponse',
+          'delegates call to client.updateCategory with correct category and returns Category', // Updated description
           () async {
         // Arrange: Stub the client method using any() for the Category object
         when(() => mockCategoriesClient.updateCategory(any()))
@@ -266,7 +342,8 @@ void main() {
             await categoriesRepository.updateCategory(categoryToUpdate);
 
         // Assert: Verify the client method was called with the correct category and result matches
-        expect(actualResponse, equals(expectedResponse));
+        expect(actualResponse,
+            equals(updatedCategory),); // Expect Category directly
         verify(() => mockCategoriesClient.updateCategory(categoryToUpdate))
             .called(1);
       });
