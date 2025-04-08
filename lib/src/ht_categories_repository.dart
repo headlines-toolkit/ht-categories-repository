@@ -19,9 +19,8 @@ class HtCategoriesRepository {
   /// {@macro ht_categories_repository}
   ///
   /// Requires an instance of [HtCategoriesClient] to perform data operations.
-  const HtCategoriesRepository({
-    required HtCategoriesClient categoriesClient,
-  }) : _categoriesClient = categoriesClient;
+  const HtCategoriesRepository({required HtCategoriesClient categoriesClient})
+    : _categoriesClient = categoriesClient;
 
   final HtCategoriesClient _categoriesClient;
 

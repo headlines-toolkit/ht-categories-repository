@@ -1,11 +1,11 @@
 //
 // ignore_for_file: prefer_const_constructors, lines_longer_than_80_chars
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:ht_categories_client/ht_categories_client.dart';
 import 'package:ht_categories_repository/ht_categories_repository.dart';
 import 'package:ht_shared/ht_shared.dart'; // Import PaginatedResponse
 import 'package:mocktail/mocktail.dart';
+import 'package:test/test.dart';
 
 // Define a mock class using mocktail
 class MockHtCategoriesClient extends Mock implements HtCategoriesClient {}
@@ -78,124 +78,130 @@ void main() {
       );
 
       test(
-          'delegates call to client.getCategories with limit and returns PaginatedResponse with hasMore=true and correct cursor when limit is met',
-          () async {
-        // Arrange: Stub the client method to return a list
-        when(
-          () => mockCategoriesClient.getCategories(
-            limit: any(named: 'limit'),
-            startAfterId: any(named: 'startAfterId'),
-          ),
-        ).thenAnswer((_) async => sampleCategories);
+        'delegates call to client.getCategories with limit and returns PaginatedResponse with hasMore=true and correct cursor when limit is met',
+        () async {
+          // Arrange: Stub the client method to return a list
+          when(
+            () => mockCategoriesClient.getCategories(
+              limit: any(named: 'limit'),
+              startAfterId: any(named: 'startAfterId'),
+            ),
+          ).thenAnswer((_) async => sampleCategories);
 
-        // Act: Call the repository method
-        final actualResponse = await categoriesRepository.getCategories(
-          limit: limit,
-          startAfterId: startAfterId,
-        );
-
-        // Assert: Verify the client method was called with correct params and result matches
-        expect(actualResponse, equals(expectedResponseFull));
-        verify(
-          () => mockCategoriesClient.getCategories(
+          // Act: Call the repository method
+          final actualResponse = await categoriesRepository.getCategories(
             limit: limit,
             startAfterId: startAfterId,
-          ),
-        ).called(1);
-      });
+          );
+
+          // Assert: Verify the client method was called with correct params and result matches
+          expect(actualResponse, equals(expectedResponseFull));
+          verify(
+            () => mockCategoriesClient.getCategories(
+              limit: limit,
+              startAfterId: startAfterId,
+            ),
+          ).called(1);
+        },
+      );
 
       test(
-          'delegates call to client.getCategories with limit and returns PaginatedResponse with hasMore=false and correct cursor when fewer items than limit are returned',
-          () async {
-        // Arrange: Stub the client method to return a partial list
-        when(
-          () => mockCategoriesClient.getCategories(
-            limit: any(named: 'limit'),
-            startAfterId: any(named: 'startAfterId'),
-          ),
-        ).thenAnswer((_) async => sampleCategoriesPartial);
+        'delegates call to client.getCategories with limit and returns PaginatedResponse with hasMore=false and correct cursor when fewer items than limit are returned',
+        () async {
+          // Arrange: Stub the client method to return a partial list
+          when(
+            () => mockCategoriesClient.getCategories(
+              limit: any(named: 'limit'),
+              startAfterId: any(named: 'startAfterId'),
+            ),
+          ).thenAnswer((_) async => sampleCategoriesPartial);
 
-        // Act: Call the repository method
-        final actualResponse = await categoriesRepository.getCategories(
-          limit: limit, // Requesting 10
-          startAfterId: startAfterId,
-        );
-
-        // Assert: Verify the client method was called and result matches partial response
-        expect(actualResponse, equals(expectedResponsePartial));
-        verify(
-          () => mockCategoriesClient.getCategories(
-            limit: limit,
+          // Act: Call the repository method
+          final actualResponse = await categoriesRepository.getCategories(
+            limit: limit, // Requesting 10
             startAfterId: startAfterId,
-          ),
-        ).called(1);
-      });
+          );
+
+          // Assert: Verify the client method was called and result matches partial response
+          expect(actualResponse, equals(expectedResponsePartial));
+          verify(
+            () => mockCategoriesClient.getCategories(
+              limit: limit,
+              startAfterId: startAfterId,
+            ),
+          ).called(1);
+        },
+      );
 
       test(
-          'delegates call to client.getCategories without limit and returns PaginatedResponse with hasMore=false and correct cursor',
-          () async {
-        // Arrange: Stub the client method to return a list
-        when(
-          () => mockCategoriesClient.getCategories(
-            startAfterId: any(named: 'startAfterId'),
-          ),
-        ).thenAnswer((_) async => sampleCategories);
+        'delegates call to client.getCategories without limit and returns PaginatedResponse with hasMore=false and correct cursor',
+        () async {
+          // Arrange: Stub the client method to return a list
+          when(
+            () => mockCategoriesClient.getCategories(
+              startAfterId: any(named: 'startAfterId'),
+            ),
+          ).thenAnswer((_) async => sampleCategories);
 
-        // Act: Call the repository method without limit
-        final actualResponse = await categoriesRepository.getCategories(
-          startAfterId: startAfterId,
-        );
-
-        // Assert: Verify the client method was called and result matches no-limit response
-        expect(actualResponse, equals(expectedResponseNoLimit));
-        verify(
-          () => mockCategoriesClient.getCategories(
+          // Act: Call the repository method without limit
+          final actualResponse = await categoriesRepository.getCategories(
             startAfterId: startAfterId,
-          ),
-        ).called(1);
-      });
+          );
+
+          // Assert: Verify the client method was called and result matches no-limit response
+          expect(actualResponse, equals(expectedResponseNoLimit));
+          verify(
+            () =>
+                mockCategoriesClient.getCategories(startAfterId: startAfterId),
+          ).called(1);
+        },
+      );
 
       test(
-          'returns PaginatedResponse with empty list, null cursor, and hasMore=false when client returns empty list',
-          () async {
-        // Arrange: Stub the client method to return an empty list
-        when(() => mockCategoriesClient.getCategories())
-            .thenAnswer((_) async => []);
+        'returns PaginatedResponse with empty list, null cursor, and hasMore=false when client returns empty list',
+        () async {
+          // Arrange: Stub the client method to return an empty list
+          when(
+            () => mockCategoriesClient.getCategories(),
+          ).thenAnswer((_) async => []);
 
-        // Act: Call the repository method
-        final actualResponse = await categoriesRepository.getCategories();
+          // Act: Call the repository method
+          final actualResponse = await categoriesRepository.getCategories();
 
-        // Assert: Verify the result matches the empty response
-        expect(actualResponse, equals(expectedResponseEmpty));
-        verify(() => mockCategoriesClient.getCategories()).called(1);
-      });
+          // Assert: Verify the result matches the empty response
+          expect(actualResponse, equals(expectedResponseEmpty));
+          verify(() => mockCategoriesClient.getCategories()).called(1);
+        },
+      );
 
-      test('throws GetCategoriesFailure when client throws Exception',
-          () async {
-        // Arrange: Stub the client method to throw a generic Exception
-        final exception = Exception('Client error');
-        when(
-          () => mockCategoriesClient.getCategories(
-            limit: any(named: 'limit'),
-            startAfterId: any(named: 'startAfterId'),
-          ),
-        ).thenThrow(exception);
+      test(
+        'throws GetCategoriesFailure when client throws Exception',
+        () async {
+          // Arrange: Stub the client method to throw a generic Exception
+          final exception = Exception('Client error');
+          when(
+            () => mockCategoriesClient.getCategories(
+              limit: any(named: 'limit'),
+              startAfterId: any(named: 'startAfterId'),
+            ),
+          ).thenThrow(exception);
 
-        // Act & Assert: Expect the repository to throw the specific failure
-        expect(
-          () => categoriesRepository.getCategories(
-            limit: limit,
-            startAfterId: startAfterId,
-          ),
-          throwsA(isA<GetCategoriesFailure>()),
-        );
-        verify(
-          () => mockCategoriesClient.getCategories(
-            limit: limit,
-            startAfterId: startAfterId,
-          ),
-        ).called(1);
-      });
+          // Act & Assert: Expect the repository to throw the specific failure
+          expect(
+            () => categoriesRepository.getCategories(
+              limit: limit,
+              startAfterId: startAfterId,
+            ),
+            throwsA(isA<GetCategoriesFailure>()),
+          );
+          verify(
+            () => mockCategoriesClient.getCategories(
+              limit: limit,
+              startAfterId: startAfterId,
+            ),
+          ).called(1);
+        },
+      );
     });
 
     group('getCategory', () {
@@ -205,54 +211,62 @@ void main() {
       // No longer need expectedResponse for PaginatedResponse
 
       test(
-          'delegates call to client.getCategory with correct id and returns Category', // Updated description
-          () async {
-        // Arrange: Stub the client method to return a Category
-        when(() => mockCategoriesClient.getCategory(any()))
-            .thenAnswer((_) async => dummyCategory);
+        'delegates call to client.getCategory with correct id and returns Category', // Updated description
+        () async {
+          // Arrange: Stub the client method to return a Category
+          when(
+            () => mockCategoriesClient.getCategory(any()),
+          ).thenAnswer((_) async => dummyCategory);
 
-        // Act: Call the repository method
-        final actualResponse =
-            await categoriesRepository.getCategory(categoryId);
+          // Act: Call the repository method
+          final actualResponse = await categoriesRepository.getCategory(
+            categoryId,
+          );
 
-        // Assert: Verify the client method was called with the correct ID and result matches
-        expect(
-          actualResponse,
-          equals(dummyCategory),
-        ); // Expect Category directly
-        verify(() => mockCategoriesClient.getCategory(categoryId)).called(1);
-      });
-
-      test('throws GetCategoryFailure when client throws generic Exception',
-          () async {
-        // Arrange: Stub the client method to throw a generic Exception
-        final exception = Exception('Client error');
-        when(() => mockCategoriesClient.getCategory(any()))
-            .thenThrow(exception);
-
-        // Act & Assert: Expect the repository to throw the specific failure
-        expect(
-          () => categoriesRepository.getCategory(categoryId),
-          throwsA(isA<GetCategoryFailure>()),
-        );
-        verify(() => mockCategoriesClient.getCategory(categoryId)).called(1);
-      });
+          // Assert: Verify the client method was called with the correct ID and result matches
+          expect(
+            actualResponse,
+            equals(dummyCategory),
+          ); // Expect Category directly
+          verify(() => mockCategoriesClient.getCategory(categoryId)).called(1);
+        },
+      );
 
       test(
-          'rethrows CategoryNotFoundFailure when client throws CategoryNotFoundFailure',
-          () async {
-        // Arrange: Stub the client method to throw CategoryNotFoundFailure
-        final exception = CategoryNotFoundFailure(categoryId, Error());
-        when(() => mockCategoriesClient.getCategory(any()))
-            .thenThrow(exception);
+        'throws GetCategoryFailure when client throws generic Exception',
+        () async {
+          // Arrange: Stub the client method to throw a generic Exception
+          final exception = Exception('Client error');
+          when(
+            () => mockCategoriesClient.getCategory(any()),
+          ).thenThrow(exception);
 
-        // Act & Assert: Expect the repository to rethrow the same failure
-        expect(
-          () => categoriesRepository.getCategory(categoryId),
-          throwsA(isA<CategoryNotFoundFailure>()),
-        );
-        verify(() => mockCategoriesClient.getCategory(categoryId)).called(1);
-      });
+          // Act & Assert: Expect the repository to throw the specific failure
+          expect(
+            () => categoriesRepository.getCategory(categoryId),
+            throwsA(isA<GetCategoryFailure>()),
+          );
+          verify(() => mockCategoriesClient.getCategory(categoryId)).called(1);
+        },
+      );
+
+      test(
+        'rethrows CategoryNotFoundFailure when client throws CategoryNotFoundFailure',
+        () async {
+          // Arrange: Stub the client method to throw CategoryNotFoundFailure
+          final exception = CategoryNotFoundFailure(categoryId, Error());
+          when(
+            () => mockCategoriesClient.getCategory(any()),
+          ).thenThrow(exception);
+
+          // Act & Assert: Expect the repository to rethrow the same failure
+          expect(
+            () => categoriesRepository.getCategory(categoryId),
+            throwsA(isA<CategoryNotFoundFailure>()),
+          );
+          verify(() => mockCategoriesClient.getCategory(categoryId)).called(1);
+        },
+      );
     });
 
     group('createCategory', () {
@@ -264,68 +278,71 @@ void main() {
       // No longer need expectedResponse for PaginatedResponse
 
       test(
-          'delegates call to client.createCategory with correct parameters and returns Category', // Updated description
-          () async {
-        // Arrange: Stub the client method using any(named:) for named params
-        when(
-          () => mockCategoriesClient.createCategory(
-            name: any(named: 'name'),
-            description: any(named: 'description'),
-            iconUrl: any(named: 'iconUrl'),
-          ),
-        ).thenAnswer((_) async => createdCategory);
+        'delegates call to client.createCategory with correct parameters and returns Category', // Updated description
+        () async {
+          // Arrange: Stub the client method using any(named:) for named params
+          when(
+            () => mockCategoriesClient.createCategory(
+              name: any(named: 'name'),
+              description: any(named: 'description'),
+              iconUrl: any(named: 'iconUrl'),
+            ),
+          ).thenAnswer((_) async => createdCategory);
 
-        // Act: Call the repository method
-        final actualResponse = await categoriesRepository.createCategory(
-          name: name,
-          description: description,
-          iconUrl: iconUrl,
-        );
-
-        // Assert: Verify the client method was called with correct parameters and result matches
-        expect(
-          actualResponse,
-          equals(createdCategory),
-        ); // Expect Category directly
-        verify(
-          () => mockCategoriesClient.createCategory(
+          // Act: Call the repository method
+          final actualResponse = await categoriesRepository.createCategory(
             name: name,
             description: description,
             iconUrl: iconUrl,
-          ),
-        ).called(1);
-      });
+          );
 
-      test('throws CreateCategoryFailure when client throws Exception',
-          () async {
-        // Arrange: Stub the client method to throw a generic Exception
-        final exception = Exception('Client error');
-        when(
-          () => mockCategoriesClient.createCategory(
-            name: any(named: 'name'),
-            description: any(named: 'description'),
-            iconUrl: any(named: 'iconUrl'),
-          ),
-        ).thenThrow(exception);
+          // Assert: Verify the client method was called with correct parameters and result matches
+          expect(
+            actualResponse,
+            equals(createdCategory),
+          ); // Expect Category directly
+          verify(
+            () => mockCategoriesClient.createCategory(
+              name: name,
+              description: description,
+              iconUrl: iconUrl,
+            ),
+          ).called(1);
+        },
+      );
 
-        // Act & Assert: Expect the repository to throw the specific failure
-        expect(
-          () => categoriesRepository.createCategory(
-            name: name,
-            description: description,
-            iconUrl: iconUrl,
-          ),
-          throwsA(isA<CreateCategoryFailure>()),
-        );
-        // Verify with specific values or any() as appropriate
-        verify(
-          () => mockCategoriesClient.createCategory(
-            name: name,
-            description: description,
-            iconUrl: iconUrl,
-          ),
-        ).called(1);
-      });
+      test(
+        'throws CreateCategoryFailure when client throws Exception',
+        () async {
+          // Arrange: Stub the client method to throw a generic Exception
+          final exception = Exception('Client error');
+          when(
+            () => mockCategoriesClient.createCategory(
+              name: any(named: 'name'),
+              description: any(named: 'description'),
+              iconUrl: any(named: 'iconUrl'),
+            ),
+          ).thenThrow(exception);
+
+          // Act & Assert: Expect the repository to throw the specific failure
+          expect(
+            () => categoriesRepository.createCategory(
+              name: name,
+              description: description,
+              iconUrl: iconUrl,
+            ),
+            throwsA(isA<CreateCategoryFailure>()),
+          );
+          // Verify with specific values or any() as appropriate
+          verify(
+            () => mockCategoriesClient.createCategory(
+              name: name,
+              description: description,
+              iconUrl: iconUrl,
+            ),
+          ).called(1);
+        },
+      );
     });
 
     group('updateCategory', () {
@@ -335,57 +352,71 @@ void main() {
       // No longer need expectedResponse for PaginatedResponse
 
       test(
-          'delegates call to client.updateCategory with correct category and returns Category', // Updated description
-          () async {
-        // Arrange: Stub the client method using any() for the Category object
-        when(() => mockCategoriesClient.updateCategory(any()))
-            .thenAnswer((_) async => updatedCategory);
+        'delegates call to client.updateCategory with correct category and returns Category', // Updated description
+        () async {
+          // Arrange: Stub the client method using any() for the Category object
+          when(
+            () => mockCategoriesClient.updateCategory(any()),
+          ).thenAnswer((_) async => updatedCategory);
 
-        // Act: Call the repository method
-        final actualResponse =
-            await categoriesRepository.updateCategory(categoryToUpdate);
+          // Act: Call the repository method
+          final actualResponse = await categoriesRepository.updateCategory(
+            categoryToUpdate,
+          );
 
-        // Assert: Verify the client method was called with the correct category and result matches
-        expect(
-          actualResponse,
-          equals(updatedCategory),
-        ); // Expect Category directly
-        verify(() => mockCategoriesClient.updateCategory(categoryToUpdate))
-            .called(1);
-      });
-
-      test('throws UpdateCategoryFailure when client throws generic Exception',
-          () async {
-        // Arrange: Stub the client method to throw a generic Exception
-        final exception = Exception('Client error');
-        when(() => mockCategoriesClient.updateCategory(any()))
-            .thenThrow(exception);
-
-        // Act & Assert: Expect the repository to throw the specific failure
-        expect(
-          () => categoriesRepository.updateCategory(categoryToUpdate),
-          throwsA(isA<UpdateCategoryFailure>()),
-        );
-        verify(() => mockCategoriesClient.updateCategory(categoryToUpdate))
-            .called(1);
-      });
+          // Assert: Verify the client method was called with the correct category and result matches
+          expect(
+            actualResponse,
+            equals(updatedCategory),
+          ); // Expect Category directly
+          verify(
+            () => mockCategoriesClient.updateCategory(categoryToUpdate),
+          ).called(1);
+        },
+      );
 
       test(
-          'rethrows CategoryNotFoundFailure when client throws CategoryNotFoundFailure',
-          () async {
-        // Arrange: Stub the client method to throw CategoryNotFoundFailure
-        final exception = CategoryNotFoundFailure(categoryToUpdate.id, Error());
-        when(() => mockCategoriesClient.updateCategory(any()))
-            .thenThrow(exception);
+        'throws UpdateCategoryFailure when client throws generic Exception',
+        () async {
+          // Arrange: Stub the client method to throw a generic Exception
+          final exception = Exception('Client error');
+          when(
+            () => mockCategoriesClient.updateCategory(any()),
+          ).thenThrow(exception);
 
-        // Act & Assert: Expect the repository to rethrow the same failure
-        expect(
-          () => categoriesRepository.updateCategory(categoryToUpdate),
-          throwsA(isA<CategoryNotFoundFailure>()),
-        );
-        verify(() => mockCategoriesClient.updateCategory(categoryToUpdate))
-            .called(1);
-      });
+          // Act & Assert: Expect the repository to throw the specific failure
+          expect(
+            () => categoriesRepository.updateCategory(categoryToUpdate),
+            throwsA(isA<UpdateCategoryFailure>()),
+          );
+          verify(
+            () => mockCategoriesClient.updateCategory(categoryToUpdate),
+          ).called(1);
+        },
+      );
+
+      test(
+        'rethrows CategoryNotFoundFailure when client throws CategoryNotFoundFailure',
+        () async {
+          // Arrange: Stub the client method to throw CategoryNotFoundFailure
+          final exception = CategoryNotFoundFailure(
+            categoryToUpdate.id,
+            Error(),
+          );
+          when(
+            () => mockCategoriesClient.updateCategory(any()),
+          ).thenThrow(exception);
+
+          // Act & Assert: Expect the repository to rethrow the same failure
+          expect(
+            () => categoriesRepository.updateCategory(categoryToUpdate),
+            throwsA(isA<CategoryNotFoundFailure>()),
+          );
+          verify(
+            () => mockCategoriesClient.updateCategory(categoryToUpdate),
+          ).called(1);
+        },
+      );
     });
 
     group('deleteCategory', () {
@@ -393,8 +424,9 @@ void main() {
 
       test('delegates call to client.deleteCategory with correct id', () async {
         // Arrange: Stub the client method (returns void Future)
-        when(() => mockCategoriesClient.deleteCategory(any()))
-            .thenAnswer((_) async {}); // Use async {} for void Future
+        when(
+          () => mockCategoriesClient.deleteCategory(any()),
+        ).thenAnswer((_) async {}); // Use async {} for void Future
 
         // Act: Call the repository method
         await categoriesRepository.deleteCategory(categoryId);
@@ -403,36 +435,45 @@ void main() {
         verify(() => mockCategoriesClient.deleteCategory(categoryId)).called(1);
       });
 
-      test('throws DeleteCategoryFailure when client throws generic Exception',
-          () async {
-        // Arrange: Stub the client method to throw a generic Exception
-        final exception = Exception('Client error');
-        when(() => mockCategoriesClient.deleteCategory(any()))
-            .thenThrow(exception);
+      test(
+        'throws DeleteCategoryFailure when client throws generic Exception',
+        () async {
+          // Arrange: Stub the client method to throw a generic Exception
+          final exception = Exception('Client error');
+          when(
+            () => mockCategoriesClient.deleteCategory(any()),
+          ).thenThrow(exception);
 
-        // Act & Assert: Expect the repository to throw the specific failure
-        expect(
-          () => categoriesRepository.deleteCategory(categoryId),
-          throwsA(isA<DeleteCategoryFailure>()),
-        );
-        verify(() => mockCategoriesClient.deleteCategory(categoryId)).called(1);
-      });
+          // Act & Assert: Expect the repository to throw the specific failure
+          expect(
+            () => categoriesRepository.deleteCategory(categoryId),
+            throwsA(isA<DeleteCategoryFailure>()),
+          );
+          verify(
+            () => mockCategoriesClient.deleteCategory(categoryId),
+          ).called(1);
+        },
+      );
 
       test(
-          'rethrows CategoryNotFoundFailure when client throws CategoryNotFoundFailure',
-          () async {
-        // Arrange: Stub the client method to throw CategoryNotFoundFailure
-        final exception = CategoryNotFoundFailure(categoryId, Error());
-        when(() => mockCategoriesClient.deleteCategory(any()))
-            .thenThrow(exception);
+        'rethrows CategoryNotFoundFailure when client throws CategoryNotFoundFailure',
+        () async {
+          // Arrange: Stub the client method to throw CategoryNotFoundFailure
+          final exception = CategoryNotFoundFailure(categoryId, Error());
+          when(
+            () => mockCategoriesClient.deleteCategory(any()),
+          ).thenThrow(exception);
 
-        // Act & Assert: Expect the repository to rethrow the same failure
-        expect(
-          () => categoriesRepository.deleteCategory(categoryId),
-          throwsA(isA<CategoryNotFoundFailure>()),
-        );
-        verify(() => mockCategoriesClient.deleteCategory(categoryId)).called(1);
-      });
+          // Act & Assert: Expect the repository to rethrow the same failure
+          expect(
+            () => categoriesRepository.deleteCategory(categoryId),
+            throwsA(isA<CategoryNotFoundFailure>()),
+          );
+          verify(
+            () => mockCategoriesClient.deleteCategory(categoryId),
+          ).called(1);
+        },
+      );
     });
   });
 }
