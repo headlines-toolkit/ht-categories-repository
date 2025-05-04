@@ -2,6 +2,8 @@
 
 [![style: very good analysis](https://img.shields.io/badge/style-very_good_analysis-B22C89.svg)](https://pub.dev/packages/very_good_analysis)
 
+> **Note:** This package is being archived. Please use the successor package [`ht-data-repository`](https://github.com/headlines-toolkit/ht-data-repository) instead.
+
 A Dart package providing a repository implementation for managing news categories. This repository acts as an abstraction layer over a `HtCategoriesClient` implementation, handling data fetching, manipulation, and error translation.
 
 ## Overview
